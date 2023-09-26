@@ -1,4 +1,8 @@
+package yatzy;
 import org.junit.*;
+
+import yatzy.Yatzy;
+
 import static org.junit.Assert.*;
 
 public class YatzyTest {

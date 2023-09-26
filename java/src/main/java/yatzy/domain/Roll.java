@@ -1,6 +1,7 @@
-package domain;
+package yatzy.domain;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,7 +12,7 @@ import java.util.stream.Stream;
 
 /**
  * Class that represents a user roll, composed of 5 dices
- * this class contains utility methods
+ * this class contains roll scoring logic
  * @author borhen
  *
  */
@@ -49,7 +50,7 @@ public class Roll {
 	
 	public Stream<Entry<Integer, Long>> filterByOccurence(int occurence) {
 		return this.groupByDice().entrySet().stream()
-						.filter(e -> e.getValue() > occurence);
+						.filter(e -> e.getValue() >= occurence);
 	}
 	
 	public List<Integer> sort() {
@@ -58,6 +59,30 @@ public class Roll {
 	
 	public boolean equals(List<Integer> otherDices) {
 		return otherDices.equals(this.sort());
+	}
+	
+	public int sumPairs() {
+		List<Integer> dicePairs = this.filterByOccurence(2) //filter the dices that appeared at least twice
+				.map(Entry::getKey)
+				.toList();
+    	if(dicePairs.size() == 2) {
+    		return dicePairs.stream().mapToInt(dice -> dice * 2).sum();
+    	}
+    	return 0;
+	}
+	public int sumOccurences(int occurence) {
+		return this.filterByOccurence(occurence)
+					.map(Entry::getKey)
+					.max(Comparator.naturalOrder()) //get the highest dice value
+					.map(value -> value * occurence)
+					.orElse(0);
+	}
+	
+	public boolean isFullHouse() {
+		Map<Integer, Long> diceCount = this.groupByDice();
+		boolean tripleSide = diceCount.entrySet().stream().anyMatch(e -> e.getValue() == 3);
+    	boolean twoDistinctValues = diceCount.keySet().stream().distinct().count() == 2;
+    	return tripleSide && twoDistinctValues;
 	}
 	
 }
