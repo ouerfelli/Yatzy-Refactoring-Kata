@@ -3,31 +3,36 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import domain.Roll;
 
 public class Yatzy {
 
     public static int chance(int d1, int d2, int d3, int d4, int d5)
     {
-    	return IntStream.of(d1, d2, d3, d4, d5).sum();
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	return roll.sum();
     }
 
     public static int yatzy(int... dice)
     {
-    	return IntStream.of(dice).distinct().count() == 1 ? 50 : 0;
+    	Roll roll = new Roll(dice);
+    	return roll.distinctDices() == 1 ? 50 : 0;
     }
 
     public static int ones(int d1, int d2, int d3, int d4, int d5) {
-    	return IntStream.of(d1, d2, d3, d4, d5).filter(d -> d == 1).sum();
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+        return roll.sum(1);
     }
 
     public static int twos(int d1, int d2, int d3, int d4, int d5) {
-    	return IntStream.of(d1, d2, d3, d4, d5).filter(d -> d == 2).sum();
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	return roll.sum(2);
     }
 
     public static int threes(int d1, int d2, int d3, int d4, int d5) {
-    	return IntStream.of(d1, d2, d3, d4, d5).filter(d -> d == 3).sum();
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	return roll.sum(3);
     }
 
     protected int[] dice;
@@ -43,29 +48,26 @@ public class Yatzy {
 
     public int fours()
     {
-    	return Arrays.stream(dice).filter(d -> d == 4).sum();
+    	Roll roll = new Roll(dice);
+    	return roll.sum(4);
     }
 
     public int fives()
     {
-    	return Arrays.stream(dice).filter(d -> d == 5).sum();
+    	Roll roll = new Roll(dice);
+    	return roll.sum(5);
     }
 
     public int sixes()
     {
-    	return Arrays.stream(dice).filter(d -> d == 6).sum();
+    	Roll roll = new Roll(dice);
+    	return roll.sum(6);
     }
 
     public static int score_pair(int d1, int d2, int d3, int d4, int d5)
     {
-    	List<Integer> dices = Arrays.asList(d1, d2, d3, d4, d5);
-    	Map<Integer, Long> sideCount = dices.stream()
-                .collect(Collectors.groupingBy(
-                        i -> i,             // group by dice
-                        Collectors.counting() // count occurrences of each dice
-                ));
-    	return sideCount.entrySet().stream()
-		    			.filter(e -> e.getValue() > 1) //filter the dices that appeared more than once
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	return roll.filterByOccurence(1) //filter the dices that appeared more than once
 		    			.map(Entry::getKey)
 		    			.max(Comparator.naturalOrder()) //get the highest dice value
 		    			.map(value -> value * 2)
@@ -74,32 +76,20 @@ public class Yatzy {
 
     public static int two_pair(int d1, int d2, int d3, int d4, int d5)
     {
-    	List<Integer> dices = Arrays.asList(d1, d2, d3, d4, d5);
-    	Map<Integer, Long> sideCount = dices.stream()
-                .collect(Collectors.groupingBy(
-                        i -> i,             // group by dice
-                        Collectors.counting() // count occurrences of each dice
-                ));
-    	List<Integer> dicePairs = sideCount.entrySet().stream()
-				.filter(e -> e.getValue() > 1) //filter the dices that appeared more than once
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	List<Integer> dicePairs = roll.filterByOccurence(1) //filter the dices that appeared more than once
 				.map(Entry::getKey)
-				.collect(Collectors.toList());
+				.toList();
     	if(dicePairs.size() == 2) {
     		return dicePairs.stream().mapToInt(dice -> dice * 2).sum();
     	}
     	return 0;
     }
 
-    public static int four_of_a_kind(int _1, int _2, int d3, int d4, int d5)
+    public static int four_of_a_kind(int d1, int d2, int d3, int d4, int d5)
     {
-    	List<Integer> dices = Arrays.asList(_1, _2, d3, d4, d5);
-    	Map<Integer, Long> sideCount = dices.stream()
-                .collect(Collectors.groupingBy(
-                        i -> i,             // group by dice
-                        Collectors.counting() // count occurrences of each dice
-                ));
-    	return sideCount.entrySet().stream()
-		    			.filter(e -> e.getValue() > 3) //filter the dices that appeared more than once
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	return roll.filterByOccurence(3) //filter the dices that appeared more than thrice
 		    			.findFirst()
 		    			.map(Entry::getKey)
 		    			.map(value -> value * 4)
@@ -108,14 +98,8 @@ public class Yatzy {
 
     public static int three_of_a_kind(int d1, int d2, int d3, int d4, int d5)
     {
-    	List<Integer> dices = Arrays.asList(d1, d2, d3, d4, d5);
-    	Map<Integer, Long> sideCount = dices.stream()
-                .collect(Collectors.groupingBy(
-                        i -> i,             // group by dice
-                        Collectors.counting() // count occurrences of each dice
-                ));
-    	return sideCount.entrySet().stream()
-		    			.filter(e -> e.getValue() > 2) //filter the dices that appeared more than once
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	return roll.filterByOccurence(2) //filter the dices that appeared more than twice
 		    			.findFirst()
 		    			.map(Entry::getKey)
 		    			.map(value -> value * 3)
@@ -124,28 +108,26 @@ public class Yatzy {
 
     public static int smallStraight(int d1, int d2, int d3, int d4, int d5)
     {
-    	List<Integer> dices = Arrays.asList(d1, d2, d3, d4, d5);
-    	dices.sort(Comparator.naturalOrder());
-    	return Arrays.asList(1, 2, 3, 4, 5).equals(dices) ? 15 : 0;
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	return roll.equals(Arrays.asList(1, 2, 3, 4, 5)) ? 15 : 0;
     }
 
     public static int largeStraight(int d1, int d2, int d3, int d4, int d5)
     {
-    	List<Integer> dices = Arrays.asList(d1, d2, d3, d4, d5);
-    	dices.sort(Comparator.naturalOrder());
-    	return Arrays.asList(2, 3, 4, 5, 6).equals(dices) ? 20 : 0;
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	return roll.equals(Arrays.asList(2, 3, 4, 5, 6)) ? 20 : 0;
     }
 
     public static int fullHouse(int d1, int d2, int d3, int d4, int d5)
     {
-    	List<Integer> dices = Arrays.asList(d1, d2, d3, d4, d5);
-    	Map<Integer, Long> sideCount = dices.stream()
-                .collect(Collectors.groupingBy(
-                        i -> i,             // group by dice
-                        Collectors.counting() // count occurrences of each dice
-                ));
-    	boolean tripleSide = sideCount.entrySet().stream().anyMatch(e -> e.getValue() == 3);
-    	boolean twoDistinctValues = dices.stream().distinct().count() == 2;
-    	return tripleSide && twoDistinctValues ? IntStream.of(d1, d2, d3, d4, d5).sum() : 0;
+    	Roll roll = new Roll(d1, d2, d3, d4, d5);
+    	Map<Integer, Long> diceCount = roll.groupByDice();
+    	boolean tripleSide = diceCount.entrySet().stream().anyMatch(e -> e.getValue() == 3);
+    	boolean twoDistinctValues = diceCount.keySet().stream().distinct().count() == 2;
+    	if(tripleSide && twoDistinctValues) {
+    		roll = new Roll(d1, d2, d3, d4, d5);
+    		return roll.sum();
+    	}
+    	return 0;
     }
 }
